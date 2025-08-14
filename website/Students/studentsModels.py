@@ -65,3 +65,13 @@ def search_students_by_field(search_field):
         WHERE students.{search_field} LIKE %s
         LIMIT %s OFFSET %s
     """
+STUDENTS_PAGE = """
+        SELECT students.ID, students.IMAGE, students.FIRST_NAME, students.LAST_NAME,
+               students.COURSE_CODE, courses.COURSE_NAME, students.YEAR, students.GENDER
+        FROM students
+        LEFT JOIN courses ON students.COURSE_CODE = courses.COURSE_CODE
+        LIMIT %s OFFSET %s
+        """
+STUDENT_GET_COURSES = 'SELECT COURSE_CODE, COURSE_NAME FROM courses'
+SELECT_COURSES_STUDENTS = 'SELECT COUNT(*) AS total FROM students'
+CHECK_ID_STUDENTS = "SELECT COUNT(*) FROM students WHERE ID = %s"

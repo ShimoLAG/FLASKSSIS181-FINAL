@@ -8,6 +8,7 @@ import math
 from dotenv import load_dotenv
 load_dotenv()
 from .. import mysql
+from .studentsModels import (STUDENTS_PAGE, SELECT_COURSES_STUDENTS, CHECK_ID_STUDENTS, STUDENT_GET_COURSES)
 
 # DB_HOST=localhost
 # DB_PORT=3306
@@ -33,20 +34,14 @@ import MySQLdb
 def studentsPage():
     def Get_Students(offset, limit):
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute("""
-        SELECT students.ID, students.IMAGE, students.FIRST_NAME, students.LAST_NAME,
-               students.COURSE_CODE, courses.COURSE_NAME, students.YEAR, students.GENDER
-        FROM students
-        LEFT JOIN courses ON students.COURSE_CODE = courses.COURSE_CODE
-        LIMIT %s OFFSET %s
-        """, (limit, offset))
+        cursor.execute(STUDENTS_PAGE, (limit, offset))
         student = cursor.fetchall()
         cursor.close()
         return student
 
     def getCourses():
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute('SELECT COURSE_CODE, COURSE_NAME FROM courses')
+        cursor.execute(STUDENT_GET_COURSES)
         cour = cursor.fetchall()
         cursor.close()
         return cour
@@ -58,7 +53,7 @@ def studentsPage():
 
     # Get total student count for pagination
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute('SELECT COUNT(*) AS total FROM students')
+    cursor.execute(SELECT_COURSES_STUDENTS)
     total_students = cursor.fetchone()['total']
     cursor.close()
 
@@ -89,7 +84,7 @@ def studentsPage():
         cursor = mysql.connection.cursor()
 
         # Check if the ID already exists
-        cursor.execute("SELECT COUNT(*) FROM students WHERE ID = %s", (ID,))
+        cursor.execute(CHECK_ID_STUDENTS, (ID,))
         count = cursor.fetchone()[0]
 
         # Regular expression for validating ID format (0000-0000)
