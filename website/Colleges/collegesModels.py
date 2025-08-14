@@ -65,3 +65,8 @@ def search_students_by_field(search_field):
         WHERE students.{search_field} LIKE %s
         LIMIT %s OFFSET %s
     """
+
+SELECT_COUNT_COLLEGES = "SELECT COUNT(*) FROM colleges WHERE COLLEGE_CODE = %s"
+INSERT_INTO_COLLEGE = "INSERT INTO colleges (COLLEGE_CODE, COLLEGE_NAME) VALUES (%s, %s)"
+COUNT_COLLEGE = "SELECT COUNT(*) FROM colleges"
+COLLEGE_QUERY_FOUR = "SELECT COLLEGE_CODE, COLLEGE_NAME FROM colleges ORDER BY COLLEGE_CODE ASC LIMIT %s OFFSET %s"

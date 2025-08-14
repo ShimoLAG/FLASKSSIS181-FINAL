@@ -8,6 +8,8 @@ import math
 from dotenv import load_dotenv
 load_dotenv()
 from .. import mysql
+from .collegesModels import (SELECT_COUNT_COLLEGES, INSERT_INTO_COLLEGE, COUNT_COLLEGE, COLLEGE_QUERY_FOUR)
+
 
 import re
 from flask import flash, redirect, url_for, render_template, request
@@ -26,25 +28,25 @@ def collegesPage():
         
         # Check if college code exists
         cursor = mysql.connection.cursor()
-        cursor.execute("SELECT COUNT(*) FROM colleges WHERE COLLEGE_CODE = %s", (COLLEGE_CODE,))
+        cursor.execute(SELECT_COUNT_COLLEGES, (COLLEGE_CODE,))
         exists = cursor.fetchone()[0] > 0
         cursor.close()
 
         if exists:
             flash("Error: College code already exists!", category="error")
-            return redirect(url_for('routes.collegesPage'))
+            return redirect(url_for('colleges.collegesPage'))
 
         # Insert new college
         cursor = mysql.connection.cursor()
         cursor.execute(
-            "INSERT INTO colleges (COLLEGE_CODE, COLLEGE_NAME) VALUES (%s, %s)",
+            INSERT_INTO_COLLEGE,
             (COLLEGE_CODE, COLLEGE_NAME)
         )
         mysql.connection.commit()
         cursor.close()
 
         flash("College added successfully", category="success")
-        return redirect(url_for('routes.collegesPage'))
+        return redirect(url_for('colleges.collegesPage'))
 
     # Get current page from query string
     current_page = request.args.get('page', 1, type=int)
@@ -52,7 +54,7 @@ def collegesPage():
 
     # Get total colleges count
     cursor = mysql.connection.cursor()
-    cursor.execute("SELECT COUNT(*) FROM colleges")
+    cursor.execute(COUNT_COLLEGE)
     total_colleges = cursor.fetchone()[0]
     cursor.close()
 
@@ -65,15 +67,15 @@ def collegesPage():
     # Ensure page is within range
     if current_page < 1:
         flash("Invalid page number.", "error")
-        return redirect(url_for('routes.collegesPage', page=1))
+        return redirect(url_for('colleges.collegesPage', page=1))
     if current_page > total_pages:
         flash("Page out of range.", "error")
-        return redirect(url_for('routes.collegesPage', page=total_pages))
+        return redirect(url_for('colleges.collegesPage', page=total_pages))
 
     # Fetch paginated colleges
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
     cursor.execute(
-        "SELECT COLLEGE_CODE, COLLEGE_NAME FROM colleges ORDER BY COLLEGE_CODE ASC LIMIT %s OFFSET %s",
+        COLLEGE_QUERY_FOUR,
         (PER_PAGE, offset)
     )
     colleges_list = cursor.fetchall()
