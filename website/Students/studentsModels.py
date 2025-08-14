@@ -1,5 +1,18 @@
 # queries.py
+from flask import Blueprint, render_template, redirect, url_for, request, flash
+import MySQLdb.cursors
+import cloudinary
+from cloudinary import CloudinaryImage
+import cloudinary.uploader
+import cloudinary.api
+import math
+from dotenv import load_dotenv
+load_dotenv()
+from .. import mysql
 
+import re
+from flask import flash, redirect, url_for, render_template, request
+import MySQLdb
 # Queries for students
 GET_COURSES = "SELECT COURSE_CODE, COURSE_NAME FROM courses"
 
@@ -75,3 +88,50 @@ STUDENTS_PAGE = """
 STUDENT_GET_COURSES = 'SELECT COURSE_CODE, COURSE_NAME FROM courses'
 SELECT_COURSES_STUDENTS = 'SELECT COUNT(*) AS total FROM students'
 CHECK_ID_STUDENTS = "SELECT COUNT(*) FROM students WHERE ID = %s"
+
+def Get_Students(offset, limit):
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute(STUDENTS_PAGE, (limit, offset))
+        student = cursor.fetchall()
+        cursor.close()
+        return student
+
+def getCourses():
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute(STUDENT_GET_COURSES)
+        cour = cursor.fetchall()
+        cursor.close()
+        return cour
+
+def studPages():
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute(SELECT_COURSES_STUDENTS)
+        total_students = cursor.fetchone()['total']
+        cursor.close()
+        return total_students
+
+def checkID(ID, IMAGE, FIRST_NAME, LAST_NAME, COURSE_CODE, YEAR, GENDER):
+        cursor = mysql.connection.cursor()
+
+        # Check if the ID already exists
+        cursor.execute(CHECK_ID_STUDENTS, (ID,))
+        count = cursor.fetchone()[0]
+        id_pattern = r'^\d{4}-\d{4}$'
+        if count > 0:
+            flash("Error: ID already exists. Please use a different ID.", category="error")
+        elif not FIRST_NAME or not LAST_NAME:
+            flash("Error: First Name and Last Name cannot be empty.", category="error")
+        elif not re.match(id_pattern, ID):
+            flash("Error: ID must follow the format 0000-0000.", category="error")
+        else:
+            # Insert new student if validation passes
+            cursor.execute(
+                "INSERT INTO students (ID, IMAGE, FIRST_NAME, LAST_NAME, COURSE_CODE, YEAR, GENDER) VALUES (%s, %s, %s, %s, %s, %s, %s)",
+                (ID, IMAGE, FIRST_NAME, LAST_NAME, COURSE_CODE, YEAR, GENDER)
+            )
+            mysql.connection.commit()
+            flash("Student added successfully!", category="success")
+     
+
+
+        

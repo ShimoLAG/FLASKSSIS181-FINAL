@@ -8,7 +8,7 @@ import math
 from dotenv import load_dotenv
 load_dotenv()
 from .. import mysql
-from .studentsModels import (STUDENTS_PAGE, SELECT_COURSES_STUDENTS, CHECK_ID_STUDENTS, STUDENT_GET_COURSES)
+from .studentsModels import (STUDENTS_PAGE, SELECT_COURSES_STUDENTS, CHECK_ID_STUDENTS, STUDENT_GET_COURSES, Get_Students, getCourses, studPages, checkID)
 
 # DB_HOST=localhost
 # DB_PORT=3306
@@ -32,19 +32,7 @@ import MySQLdb
 
 @routes.route('/', methods=['GET', 'POST'])
 def studentsPage():
-    def Get_Students(offset, limit):
-        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute(STUDENTS_PAGE, (limit, offset))
-        student = cursor.fetchall()
-        cursor.close()
-        return student
-
-    def getCourses():
-        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute(STUDENT_GET_COURSES)
-        cour = cursor.fetchall()
-        cursor.close()
-        return cour
+    
 
     # Pagination parameters
     page = request.args.get('page', 1, type=int)
@@ -52,10 +40,7 @@ def studentsPage():
     offset = (page - 1) * per_page
 
     # Get total student count for pagination
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute(SELECT_COURSES_STUDENTS)
-    total_students = cursor.fetchone()['total']
-    cursor.close()
+    total_students = studPages()
 
     # Calculate total pages
     total_pages = max(1, (total_students + per_page - 1) // per_page)
@@ -81,31 +66,7 @@ def studentsPage():
         if not IMAGE:
             IMAGE = '/static/images/default-profile.jpg'  # Ensure this path points to your default image
 
-        cursor = mysql.connection.cursor()
-
-        # Check if the ID already exists
-        cursor.execute(CHECK_ID_STUDENTS, (ID,))
-        count = cursor.fetchone()[0]
-
-        # Regular expression for validating ID format (0000-0000)
-        id_pattern = r'^\d{4}-\d{4}$'
-
-        if count > 0:
-            flash("Error: ID already exists. Please use a different ID.", category="error")
-        elif not FIRST_NAME or not LAST_NAME:
-            flash("Error: First Name and Last Name cannot be empty.", category="error")
-        elif not re.match(id_pattern, ID):
-            flash("Error: ID must follow the format 0000-0000.", category="error")
-        else:
-            # Insert new student if validation passes
-            cursor.execute(
-                "INSERT INTO students (ID, IMAGE, FIRST_NAME, LAST_NAME, COURSE_CODE, YEAR, GENDER) VALUES (%s, %s, %s, %s, %s, %s, %s)",
-                (ID, IMAGE, FIRST_NAME, LAST_NAME, COURSE_CODE, YEAR, GENDER)
-            )
-            mysql.connection.commit()
-            flash("Student added successfully!", category="success")
-
-        cursor.close()
+        checkID(ID,  IMAGE, FIRST_NAME, LAST_NAME, COURSE_CODE, YEAR, GENDER)
         return redirect(url_for('students.studentsPage'))
 
     # Fetch paginated students and courses
