@@ -413,8 +413,10 @@ input {
 <script type="text/javascript">
     var url = '';
     var myWidget = cloudinary.createUploadWidget({
-        cloudName: 'dgmaqsdil',
-        uploadPreset: 'ml_default'
+        cloudName: 'ddafib7wro',
+        uploadPreset: 'ml_default',
+        clientAllowedFormats: ['jpg', 'png'],
+        maxFileSize: 1048576
     }, (error, result) => {
         if (!error && result && result.event === "success") {
             console.log('Done! Here is the image info: ', result.info.secure_url);
@@ -437,7 +439,7 @@ input {
     // }, false);
     var urledit = '';
     var myWidgetedit = cloudinary.createUploadWidget({
-        cloudName: 'dgmaqsdil',
+        cloudName: 'dafib7wro',
         uploadPreset: 'ml_default',
         maxFileSize: 1048576, 
         clientAllowedFormats: ['jpg', 'png'], 
