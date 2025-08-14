@@ -65,3 +65,8 @@ def search_students_by_field(search_field):
         WHERE students.{search_field} LIKE %s
         LIMIT %s OFFSET %s
     """
+
+SELECT_COURSE = 'SELECT COURSE_CODE, COURSE_NAME, COLLEGE_CODE FROM courses LIMIT %s OFFSET %s'
+SELECT_COLLEGE_CODE = 'SELECT COLLEGE_CODE, COLLEGE_NAME FROM colleges'
+SELECT_COURSES_COUNT = 'SELECT COUNT(*) AS total FROM courses'
+INSERT_COURSES_QUERY = "INSERT INTO courses (COURSE_CODE, COURSE_NAME, COLLEGE_CODE) VALUES (%s, %s, %s)"

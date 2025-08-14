@@ -9,6 +9,8 @@ from dotenv import load_dotenv
 load_dotenv()
 from .. import mysql
 
+from .coursesModels import (SELECT_COURSE, SELECT_COLLEGE_CODE, SELECT_COURSES_COUNT, INSERT_COURSES_QUERY)
+
 # DB_HOST=localhost
 # DB_PORT=3306
 # DB_NAME=fssis
@@ -33,14 +35,14 @@ import MySQLdb
 def coursesPage():
     def Get_Courses(offset, limit):
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute('SELECT COURSE_CODE, COURSE_NAME, COLLEGE_CODE FROM courses LIMIT %s OFFSET %s', (limit, offset))
+        cursor.execute(SELECT_COURSE, (limit, offset))
         courses = cursor.fetchall()
         cursor.close()
         return courses
     
     def GetColleges():
         cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute('SELECT COLLEGE_CODE, COLLEGE_NAME FROM colleges')
+        cursor.execute(SELECT_COLLEGE_CODE)
         colleges = cursor.fetchall()
         cursor.close()
         return colleges
@@ -73,7 +75,7 @@ def coursesPage():
         COLLEGE_CODE = request.form['COLLEGE_CODE']
 
         cursor = mysql.connection.cursor()
-        cursor.execute("SELECT COUNT(*) FROM courses WHERE COURSE_CODE = %s", (COURSE_CODE,))
+        cursor.execute(SELECT_COURSES_COUNT, (COURSE_CODE,))
         exists = cursor.fetchone()[0] > 0
         cursor.close()
 
@@ -82,7 +84,7 @@ def coursesPage():
             return redirect(url_for('courses.coursesPage', page=page))
 
         cursor = mysql.connection.cursor()
-        cursor.execute("INSERT INTO courses (COURSE_CODE, COURSE_NAME, COLLEGE_CODE) VALUES (%s, %s, %s)", 
+        cursor.execute(INSERT_COURSES_QUERY, 
                        (COURSE_CODE, COURSE_NAME, COLLEGE_CODE))
         mysql.connection.commit()
         cursor.close()
