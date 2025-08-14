@@ -1,5 +1,14 @@
 # queries.py
-
+from flask import Blueprint, render_template, redirect, url_for, request, flash
+import MySQLdb.cursors
+import cloudinary
+from cloudinary import CloudinaryImage
+import cloudinary.uploader
+import cloudinary.api
+import math
+from dotenv import load_dotenv
+load_dotenv()
+from .. import mysql
 # Queries for students
 GET_COURSES = "SELECT COURSE_CODE, COURSE_NAME FROM courses"
 
@@ -72,3 +81,38 @@ SELECT_COURSES_COUNT = "SELECT COUNT(*) FROM courses WHERE COURSE_CODE = %s"
 INSERT_COURSES_QUERY = "INSERT INTO courses (COURSE_CODE, COURSE_NAME, COLLEGE_CODE) VALUES (%s, %s, %s)"
 ANOTHER_COURSE_COUNT = 'SELECT COUNT(*) AS total FROM courses'
 
+def Get_Courses(offset, limit):
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute(SELECT_COURSE, (limit, offset),)
+        courses = cursor.fetchall()
+        cursor.close()
+        return courses
+
+def GetColleges():
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute(SELECT_COLLEGE_CODE)
+        colleges = cursor.fetchall()
+        cursor.close()
+        return colleges
+
+def TOTAL():
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute(ANOTHER_COURSE_COUNT)
+        total_courses = cursor.fetchone()['total']
+        cursor.close()
+        return total_courses
+
+def BELOWTOTAL(COURSE_CODE):
+        cursor = mysql.connection.cursor()
+        cursor.execute(SELECT_COURSES_COUNT, (COURSE_CODE,))
+        exists = cursor.fetchone()[0] > 0
+        cursor.close()
+        return exists
+
+def INSERTCOURSE(COURSE_CODE, COURSE_NAME, COLLEGE_CODE):
+        cursor = mysql.connection.cursor()
+        cursor.execute(INSERT_COURSES_QUERY, 
+                       (COURSE_CODE, COURSE_NAME, COLLEGE_CODE))
+        mysql.connection.commit()
+        cursor.close()
+       

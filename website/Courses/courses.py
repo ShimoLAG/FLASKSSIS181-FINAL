@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 from .. import mysql
 
-from .coursesModels import (SELECT_COURSE, SELECT_COLLEGE_CODE, SELECT_COURSES_COUNT, INSERT_COURSES_QUERY, ANOTHER_COURSE_COUNT)
+from .coursesModels import (SELECT_COURSE, SELECT_COLLEGE_CODE, SELECT_COURSES_COUNT, INSERT_COURSES_QUERY, ANOTHER_COURSE_COUNT, Get_Courses, GetColleges, TOTAL, BELOWTOTAL, INSERTCOURSE)
 
 # DB_HOST=localhost
 # DB_PORT=3306
@@ -33,30 +33,14 @@ import MySQLdb
 #The courses table
 @routes.route('/courses', methods=['GET', 'POST'])
 def coursesPage():
-    def Get_Courses(offset, limit):
-        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute(SELECT_COURSE, (limit, offset))
-        courses = cursor.fetchall()
-        cursor.close()
-        return courses
     
-    def GetColleges():
-        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-        cursor.execute(SELECT_COLLEGE_CODE)
-        colleges = cursor.fetchall()
-        cursor.close()
-        return colleges
-
     # Pagination parameters
     page = request.args.get('page', 1, type=int)
     per_page = 5
     offset = (page - 1) * per_page
 
     # Get total courses count for pagination
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute(ANOTHER_COURSE_COUNT)
-    total_courses = cursor.fetchone()['total']
-    cursor.close()
+    total_courses = TOTAL()
 
     # Calculate total pages
     total_pages = max(1, (total_courses + per_page - 1) // per_page)
@@ -74,20 +58,12 @@ def coursesPage():
         COURSE_NAME = request.form['COURSE_NAME']
         COLLEGE_CODE = request.form['COLLEGE_CODE']
 
-        cursor = mysql.connection.cursor()
-        cursor.execute(SELECT_COURSES_COUNT, (COURSE_CODE,))
-        exists = cursor.fetchone()[0] > 0
-        cursor.close()
-
+        exists = BELOWTOTAL(COURSE_CODE)
         if exists:
             flash("Error: Course code already exists!", category="error")
             return redirect(url_for('courses.coursesPage', page=page))
 
-        cursor = mysql.connection.cursor()
-        cursor.execute(INSERT_COURSES_QUERY, 
-                       (COURSE_CODE, COURSE_NAME, COLLEGE_CODE))
-        mysql.connection.commit()
-        cursor.close()
+        INSERTCOURSE(COURSE_CODE, COURSE_NAME, COLLEGE_CODE)
 
         flash("Course added successfully", category="success")
         return redirect(url_for('courses.coursesPage', page=page))
