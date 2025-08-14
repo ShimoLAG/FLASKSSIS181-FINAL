@@ -261,33 +261,6 @@ input{
         {% endif %}
       </tbody>
     </table>
-
-    <!-- Pagination -->
-    <nav aria-label="Page navigation" style="margin-top: 20px;">
-        <ul class="pagination justify-content-center">
-            {% if current_page > 1 %}
-                <li class="page-item">
-                    <a class="page-link" href="{{ url_for('courses.coursesPage', page=current_page - 1) }}" aria-label="Previous">
-                        <span aria-hidden="true">&laquo;</span>
-                    </a>
-                </li>
-            {% endif %}
-
-            {% for page in range(1, total_pages + 1) %}
-                <li class="page-item {% if page == current_page %} active {% endif %}">
-                    <a class="page-link" href="{{ url_for('courses.coursesPage', page=page) }}">{{ page }}</a>
-                </li>
-            {% endfor %}
-
-            {% if current_page < total_pages %}
-                <li class="page-item">
-                    <a class="page-link" href="{{ url_for('courses.coursesPage', page=current_page + 1) }}" aria-label="Next">
-                        <span aria-hidden="true">&raquo;</span>
-                    </a>
-                </li>
-            {% endif %}
-        </ul>
-    </nav>
   </div>
 
 </div>
