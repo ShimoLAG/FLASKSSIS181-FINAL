@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 from .. import mysql
 
-from .coursesModels import (SELECT_COURSE, SELECT_COLLEGE_CODE, SELECT_COURSES_COUNT, INSERT_COURSES_QUERY)
+from .coursesModels import (SELECT_COURSE, SELECT_COLLEGE_CODE, SELECT_COURSES_COUNT, INSERT_COURSES_QUERY, ANOTHER_COURSE_COUNT)
 
 # DB_HOST=localhost
 # DB_PORT=3306
@@ -54,7 +54,7 @@ def coursesPage():
 
     # Get total courses count for pagination
     cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute('SELECT COUNT(*) AS total FROM courses')
+    cursor.execute(ANOTHER_COURSE_COUNT)
     total_courses = cursor.fetchone()['total']
     cursor.close()
 
