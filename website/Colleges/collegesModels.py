@@ -1,5 +1,14 @@
 # queries.py
-
+from flask import Blueprint, render_template, redirect, url_for, request, flash
+import MySQLdb.cursors
+import cloudinary
+from cloudinary import CloudinaryImage
+import cloudinary.uploader
+import cloudinary.api
+import math
+from dotenv import load_dotenv
+load_dotenv()
+from .. import mysql
 # Queries for students
 GET_COURSES = "SELECT COURSE_CODE, COURSE_NAME FROM courses"
 
@@ -70,3 +79,43 @@ SELECT_COUNT_COLLEGES = "SELECT COUNT(*) FROM colleges WHERE COLLEGE_CODE = %s"
 INSERT_INTO_COLLEGE = "INSERT INTO colleges (COLLEGE_CODE, COLLEGE_NAME) VALUES (%s, %s)"
 COUNT_COLLEGE = "SELECT COUNT(*) FROM colleges"
 COLLEGE_QUERY_FOUR = "SELECT COLLEGE_CODE, COLLEGE_NAME FROM colleges ORDER BY COLLEGE_CODE ASC LIMIT %s OFFSET %s"
+
+def CHECK_IF_EXISTS(COLLEGE_CODE):
+    cursor = mysql.connection.cursor()
+    cursor.execute(SELECT_COUNT_COLLEGES, (COLLEGE_CODE,))
+    exists = cursor.fetchone()[0] > 0
+    cursor.close()
+    
+    if exists:
+            return exists
+
+def COUNT_COLLEGES(COLLEGE_CODE, COLLEGE_NAME):
+       # Insert new college
+        cursor = mysql.connection.cursor()
+        cursor.execute(
+            INSERT_INTO_COLLEGE,
+            (COLLEGE_CODE, COLLEGE_NAME)
+        )
+        mysql.connection.commit()
+        cursor.close()
+
+        flash("College added successfully", category="success")
+        return redirect(url_for('colleges.collegesPage'))
+
+def COLLEGE_COUNT():
+    cursor = mysql.connection.cursor()
+    cursor.execute(COUNT_COLLEGE)
+    total_colleges = cursor.fetchone()[0]
+    cursor.close()
+    return total_colleges
+
+def PAGES_COLLEGES(PER_PAGE, offset):
+        cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
+        cursor.execute(
+        COLLEGE_QUERY_FOUR,
+        (PER_PAGE, offset)
+    )
+        colleges_list = cursor.fetchall()
+        cursor.close()
+
+        return colleges_list

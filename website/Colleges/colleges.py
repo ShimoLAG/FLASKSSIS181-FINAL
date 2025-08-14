@@ -8,7 +8,7 @@ import math
 from dotenv import load_dotenv
 load_dotenv()
 from .. import mysql
-from .collegesModels import (SELECT_COUNT_COLLEGES, INSERT_INTO_COLLEGE, COUNT_COLLEGE, COLLEGE_QUERY_FOUR)
+from .collegesModels import (SELECT_COUNT_COLLEGES, INSERT_INTO_COLLEGE, COUNT_COLLEGE, COLLEGE_QUERY_FOUR, CHECK_IF_EXISTS, COUNT_COLLEGES, COLLEGE_COUNT, PAGES_COLLEGES)
 
 
 import re
@@ -25,38 +25,22 @@ def collegesPage():
     if request.method == 'POST':
         COLLEGE_CODE = request.form['COLLEGE_CODE']
         COLLEGE_NAME = request.form['COLLEGE_NAME']
-        
-        # Check if college code exists
-        cursor = mysql.connection.cursor()
-        cursor.execute(SELECT_COUNT_COLLEGES, (COLLEGE_CODE,))
-        exists = cursor.fetchone()[0] > 0
-        cursor.close()
 
+
+        exists = CHECK_IF_EXISTS(COLLEGE_CODE)
         if exists:
             flash("Error: College code already exists!", category="error")
             return redirect(url_for('colleges.collegesPage'))
 
-        # Insert new college
-        cursor = mysql.connection.cursor()
-        cursor.execute(
-            INSERT_INTO_COLLEGE,
-            (COLLEGE_CODE, COLLEGE_NAME)
-        )
-        mysql.connection.commit()
-        cursor.close()
-
-        flash("College added successfully", category="success")
-        return redirect(url_for('colleges.collegesPage'))
+        
+        COUNT_COLLEGES(COLLEGE_CODE, COLLEGE_NAME)
 
     # Get current page from query string
     current_page = request.args.get('page', 1, type=int)
     offset = (current_page - 1) * PER_PAGE
 
     # Get total colleges count
-    cursor = mysql.connection.cursor()
-    cursor.execute(COUNT_COLLEGE)
-    total_colleges = cursor.fetchone()[0]
-    cursor.close()
+    total_colleges = COLLEGE_COUNT()
 
 
 
@@ -73,13 +57,7 @@ def collegesPage():
         return redirect(url_for('colleges.collegesPage', page=total_pages))
 
     # Fetch paginated colleges
-    cursor = mysql.connection.cursor(MySQLdb.cursors.DictCursor)
-    cursor.execute(
-        COLLEGE_QUERY_FOUR,
-        (PER_PAGE, offset)
-    )
-    colleges_list = cursor.fetchall()
-    cursor.close()
+    colleges_list = PAGES_COLLEGES(PER_PAGE, offset)
 
     return render_template(
         "colleges.html",
